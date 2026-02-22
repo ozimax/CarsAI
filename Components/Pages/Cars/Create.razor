@@ -1,0 +1,51 @@
+@page "/cars/create"
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+
+<PageTitle>Create Car</PageTitle>
+
+<h1>Create Car</h1>
+
+<EditForm Model="car" OnValidSubmit="CreateCar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Make</label>
+        <InputText class="form-control" @bind-Value="car.Make" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Model</label>
+        <InputText class="form-control" @bind-Value="car.Model" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Year</label>
+        <InputNumber class="form-control" @bind-Value="car.Year" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Driver Name</label>
+        <InputText class="form-control" @bind-Value="car.DriverName" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Plate Number</label>
+        <InputText class="form-control" @bind-Value="car.PlateNumber" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="/cars" class="btn btn-secondary ms-2">Cancel</a>
+</EditForm>
+
+@code {
+    private readonly Car car = new();
+
+    private async Task CreateCar()
+    {
+        DbContext.Cars.Add(car);
+        await DbContext.SaveChangesAsync();
+        Navigation.NavigateTo("/cars");
+    }
+}

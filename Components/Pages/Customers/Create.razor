@@ -1,0 +1,49 @@
+@page "/customers/create"
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+
+<PageTitle>Add Customer</PageTitle>
+
+<h1>Add Customer</h1>
+
+<EditForm Model="customer" OnValidSubmit="CreateCustomer">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <InputText class="form-control" @bind-Value="customer.Name" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="customer.Email" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="/customers" class="btn btn-secondary ms-2">Cancel</a>
+</EditForm>
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger mt-3">@error</div>
+}
+
+@code {
+    private readonly Customer customer = new();
+    private string? error;
+
+    private async Task CreateCustomer()
+    {
+        try
+        {
+            DbContext.Customers.Add(customer);
+            await DbContext.SaveChangesAsync();
+            Navigation.NavigateTo("/customers");
+        }
+        catch (DbUpdateException)
+        {
+            error = "Could not save customer. Make sure the email is unique.";
+        }
+    }
+}

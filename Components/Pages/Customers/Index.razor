@@ -1,0 +1,56 @@
+@page "/customers"
+@inject ApplicationDbContext DbContext
+
+<PageTitle>Customers</PageTitle>
+
+<h1>Customers</h1>
+
+<p>
+    <a class="btn btn-primary" href="/customers/create">Add Customer</a>
+</p>
+
+@if (customers is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (customers.Count == 0)
+{
+    <p>No customers found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in customers)
+            {
+                <tr>
+                    <td>@customer.Name</td>
+                    <td>@customer.Email</td>
+                    <td>
+                        <a href="@($"/customers/edit/{customer.Id}")">Edit</a> |
+                        <a href="@($"/customers/delete/{customer.Id}")">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Customer>? customers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        customers = await DbContext.Customers
+            .AsNoTracking()
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+    }
+}

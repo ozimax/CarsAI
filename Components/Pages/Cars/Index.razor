@@ -1,0 +1,65 @@
+@page "/"
+@page "/cars"
+@inject ApplicationDbContext DbContext
+
+<PageTitle>Cars</PageTitle>
+
+<h1>Cars</h1>
+
+<p>
+    <a class="btn btn-primary" href="/cars/create">Create New Car</a>
+</p>
+
+@if (cars is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (cars.Count == 0)
+{
+    <p>No cars found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Make</th>
+                <th>Model</th>
+                <th>Year</th>
+                <th>Driver Name</th>
+                <th>Plate Number</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var car in cars)
+            {
+                <tr>
+                    <td>@car.Make</td>
+                    <td>@car.Model</td>
+                    <td>@car.Year</td>
+                    <td>@car.DriverName</td>
+                    <td>@car.PlateNumber</td>
+                    <td>
+                        <a href="@($"/cars/details/{car.Id}")">Details</a> |
+                        <a href="@($"/cars/edit/{car.Id}")">Edit</a> |
+                        <a href="@($"/cars/delete/{car.Id}")">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Car>? cars;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cars = await DbContext.Cars
+            .AsNoTracking()
+            .OrderBy(c => c.Make)
+            .ThenBy(c => c.Model)
+            .ToListAsync();
+    }
+}

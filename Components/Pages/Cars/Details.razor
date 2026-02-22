@@ -1,0 +1,47 @@
+@page "/cars/details/{id:int}"
+@inject ApplicationDbContext DbContext
+
+<PageTitle>Car Details</PageTitle>
+
+<h1>Car Details</h1>
+
+@if (car is null)
+{
+    <p>Car not found.</p>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-3">Make</dt>
+        <dd class="col-sm-9">@car.Make</dd>
+
+        <dt class="col-sm-3">Model</dt>
+        <dd class="col-sm-9">@car.Model</dd>
+
+        <dt class="col-sm-3">Year</dt>
+        <dd class="col-sm-9">@car.Year</dd>
+
+        <dt class="col-sm-3">Driver Name</dt>
+        <dd class="col-sm-9">@car.DriverName</dd>
+
+        <dt class="col-sm-3">Plate Number</dt>
+        <dd class="col-sm-9">@car.PlateNumber</dd>
+    </dl>
+
+    <a class="btn btn-primary" href="@($"/cars/edit/{car.Id}")">Edit</a>
+    <a class="btn btn-secondary ms-2" href="/cars">Back</a>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Car? car;
+
+    protected override async Task OnInitializedAsync()
+    {
+        car = await DbContext.Cars
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == Id);
+    }
+}

@@ -1,0 +1,147 @@
+@page "/sold-cars"
+@inject ApplicationDbContext DbContext
+
+<PageTitle>Sold Cars</PageTitle>
+
+<h1>Sold Cars</h1>
+
+@if (cars is null || customers is null || soldCars is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (cars.Count == 0 || customers.Count == 0)
+{
+    <div class="alert alert-warning">
+        To record a sale, make sure at least one car and one customer exist.
+    </div>
+}
+else
+{
+    <EditForm Model="saleInput" OnValidSubmit="SaveSale">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Car</label>
+            <InputSelect class="form-select" @bind-Value="saleInput.CarId">
+                <option value="0">Select a car</option>
+                @foreach (var car in cars)
+                {
+                    <option value="@car.Id">@($"{car.Make} {car.Model} ({car.Year}) - {car.PlateNumber}")</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Customer</label>
+            <InputSelect class="form-select" @bind-Value="saleInput.CustomerId">
+                <option value="0">Select a customer</option>
+                @foreach (var customer in customers)
+                {
+                    <option value="@customer.Id">@($"{customer.Name} ({customer.Email})")</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Price</label>
+            <InputNumber class="form-control" @bind-Value="saleInput.Price" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Sale</button>
+    </EditForm>
+}
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <div class="alert alert-success mt-3">@message</div>
+}
+
+@if (soldCars is not null && soldCars.Count > 0)
+{
+    <h2 class="mt-4">Recent Sales</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Car</th>
+                <th>Customer</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var sale in soldCars)
+            {
+                <tr>
+                    <td>@($"{sale.Car?.Make} {sale.Car?.Model} ({sale.Car?.Year})")</td>
+                    <td>@sale.Customer?.Name</td>
+                    <td>@sale.Price.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Car>? cars;
+    private List<Customer>? customers;
+    private List<SoldCar>? soldCars;
+    private SaleInput saleInput = new();
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task SaveSale()
+    {
+        var sale = new SoldCar
+        {
+            CarId = saleInput.CarId,
+            CustomerId = saleInput.CustomerId,
+            Price = saleInput.Price
+        };
+
+        DbContext.SoldCars.Add(sale);
+        await DbContext.SaveChangesAsync();
+
+        message = "Sale saved successfully.";
+        saleInput = new SaleInput();
+        await LoadSales();
+    }
+
+    private async Task LoadData()
+    {
+        cars = await DbContext.Cars.AsNoTracking()
+            .OrderBy(c => c.Make)
+            .ThenBy(c => c.Model)
+            .ToListAsync();
+
+        customers = await DbContext.Customers.AsNoTracking()
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+
+        await LoadSales();
+    }
+
+    private async Task LoadSales()
+    {
+        soldCars = await DbContext.SoldCars.AsNoTracking()
+            .Include(s => s.Car)
+            .Include(s => s.Customer)
+            .OrderByDescending(s => s.Id)
+            .ToListAsync();
+    }
+
+    private class SaleInput
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a car.")]
+        public int CarId { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a customer.")]
+        public int CustomerId { get; set; }
+
+        [Range(typeof(decimal), "0.01", "1000000000")]
+        public decimal Price { get; set; }
+    }
+}

@@ -1,0 +1,69 @@
+@page "/customers/edit/{id:int}"
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+
+<PageTitle>Edit Customer</PageTitle>
+
+<h1>Edit Customer</h1>
+
+@if (customer is null)
+{
+    <p>Customer not found.</p>
+}
+else
+{
+    <EditForm Model="customer" OnValidSubmit="UpdateCustomer">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <InputText class="form-control" @bind-Value="customer.Name" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <InputText class="form-control" @bind-Value="customer.Email" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a href="/customers" class="btn btn-secondary ms-2">Cancel</a>
+    </EditForm>
+}
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger mt-3">@error</div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Customer? customer;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        customer = await DbContext.Customers.FindAsync(Id);
+    }
+
+    private async Task UpdateCustomer()
+    {
+        if (customer is null)
+        {
+            return;
+        }
+
+        try
+        {
+            DbContext.Customers.Update(customer);
+            await DbContext.SaveChangesAsync();
+            Navigation.NavigateTo("/customers");
+        }
+        catch (DbUpdateException)
+        {
+            error = "Could not update customer. Make sure the email is unique.";
+        }
+    }
+}
