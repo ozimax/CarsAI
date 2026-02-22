@@ -1,6 +1,6 @@
 @page "/"
 @page "/cars"
-@inject ApplicationDbContext DbContext
+@inject ICarService CarService
 
 <PageTitle>Cars</PageTitle>
 
@@ -56,10 +56,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        cars = await DbContext.Cars
-            .AsNoTracking()
-            .OrderBy(c => c.Make)
-            .ThenBy(c => c.Model)
-            .ToListAsync();
+        cars = (await CarService.GetAllAsync()).ToList();
     }
 }

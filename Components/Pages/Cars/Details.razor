@@ -1,5 +1,5 @@
 @page "/cars/details/{id:int}"
-@inject ApplicationDbContext DbContext
+@inject ICarService CarService
 
 <PageTitle>Car Details</PageTitle>
 
@@ -40,8 +40,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        car = await DbContext.Cars
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Id == Id);
+        car = await CarService.GetByIdAsync(Id);
     }
 }

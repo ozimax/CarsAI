@@ -1,5 +1,5 @@
 @page "/customers/create"
-@inject ApplicationDbContext DbContext
+@inject ICustomerService CustomerService
 @inject NavigationManager Navigation
 
 <PageTitle>Add Customer</PageTitle>
@@ -35,15 +35,13 @@
 
     private async Task CreateCustomer()
     {
-        try
+        var result = await CustomerService.CreateAsync(customer);
+        if (!result.Success)
         {
-            DbContext.Customers.Add(customer);
-            await DbContext.SaveChangesAsync();
-            Navigation.NavigateTo("/customers");
+            error = result.Error;
+            return;
         }
-        catch (DbUpdateException)
-        {
-            error = "Could not save customer. Make sure the email is unique.";
-        }
+
+        Navigation.NavigateTo("/customers");
     }
 }

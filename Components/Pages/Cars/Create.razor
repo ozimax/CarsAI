@@ -1,5 +1,5 @@
 @page "/cars/create"
-@inject ApplicationDbContext DbContext
+@inject ICarService CarService
 @inject NavigationManager Navigation
 
 <PageTitle>Create Car</PageTitle>
@@ -39,13 +39,24 @@
     <a href="/cars" class="btn btn-secondary ms-2">Cancel</a>
 </EditForm>
 
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger mt-3">@error</div>
+}
+
 @code {
     private readonly Car car = new();
+    private string? error;
 
     private async Task CreateCar()
     {
-        DbContext.Cars.Add(car);
-        await DbContext.SaveChangesAsync();
+        var result = await CarService.CreateAsync(car);
+        if (!result.Success)
+        {
+            error = result.Error;
+            return;
+        }
+
         Navigation.NavigateTo("/cars");
     }
 }

@@ -1,5 +1,5 @@
 @page "/customers"
-@inject ApplicationDbContext DbContext
+@inject ICustomerService CustomerService
 
 <PageTitle>Customers</PageTitle>
 
@@ -48,9 +48,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        customers = await DbContext.Customers
-            .AsNoTracking()
-            .OrderBy(c => c.Name)
-            .ToListAsync();
+        customers = (await CustomerService.GetAllAsync()).ToList();
     }
 }

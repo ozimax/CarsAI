@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using myapp.Models;
+using myapp.Domain.Entities;
 
-namespace myapp.Data;
+namespace myapp.Infrastructure.Persistence;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {

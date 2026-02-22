@@ -1,5 +1,5 @@
 @page "/customers/delete/{id:int}"
-@inject ApplicationDbContext DbContext
+@inject ICustomerService CustomerService
 @inject NavigationManager Navigation
 
 <PageTitle>Delete Customer</PageTitle>
@@ -40,7 +40,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        customer = await DbContext.Customers.FindAsync(Id);
+        customer = await CustomerService.GetByIdAsync(Id);
     }
 
     private async Task DeleteCustomer()
@@ -50,15 +50,13 @@ else
             return;
         }
 
-        try
+        var result = await CustomerService.DeleteAsync(Id);
+        if (!result.Success)
         {
-            DbContext.Customers.Remove(customer);
-            await DbContext.SaveChangesAsync();
-            Navigation.NavigateTo("/customers");
+            error = result.Error;
+            return;
         }
-        catch (DbUpdateException)
-        {
-            error = "Customer cannot be deleted because related sales exist.";
-        }
+
+        Navigation.NavigateTo("/customers");
     }
 }

@@ -1,5 +1,7 @@
 @page "/sold-cars"
-@inject ApplicationDbContext DbContext
+@inject ICarService CarService
+@inject ICustomerService CustomerService
+@inject ISoldCarService SoldCarService
 
 <PageTitle>Sold Cars</PageTitle>
 
@@ -54,7 +56,7 @@ else
 
 @if (!string.IsNullOrWhiteSpace(message))
 {
-    <div class="alert alert-success mt-3">@message</div>
+    <div class="alert @(isError ? "alert-danger" : "alert-success") mt-3">@message</div>
 }
 
 @if (soldCars is not null && soldCars.Count > 0)
@@ -87,6 +89,7 @@ else
     private List<SoldCar>? soldCars;
     private SaleInput saleInput = new();
     private string? message;
+    private bool isError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -102,35 +105,31 @@ else
             Price = saleInput.Price
         };
 
-        DbContext.SoldCars.Add(sale);
-        await DbContext.SaveChangesAsync();
+        var result = await SoldCarService.CreateAsync(sale);
+        if (!result.Success)
+        {
+            message = result.Error;
+            isError = true;
+            return;
+        }
 
         message = "Sale saved successfully.";
+        isError = false;
         saleInput = new SaleInput();
         await LoadSales();
     }
 
     private async Task LoadData()
     {
-        cars = await DbContext.Cars.AsNoTracking()
-            .OrderBy(c => c.Make)
-            .ThenBy(c => c.Model)
-            .ToListAsync();
-
-        customers = await DbContext.Customers.AsNoTracking()
-            .OrderBy(c => c.Name)
-            .ToListAsync();
+        cars = (await CarService.GetAllAsync()).ToList();
+        customers = (await CustomerService.GetAllAsync()).ToList();
 
         await LoadSales();
     }
 
     private async Task LoadSales()
     {
-        soldCars = await DbContext.SoldCars.AsNoTracking()
-            .Include(s => s.Car)
-            .Include(s => s.Customer)
-            .OrderByDescending(s => s.Id)
-            .ToListAsync();
+        soldCars = (await SoldCarService.GetAllAsync()).ToList();
     }
 
     private class SaleInput

@@ -1,5 +1,5 @@
 @page "/customers/edit/{id:int}"
-@inject ApplicationDbContext DbContext
+@inject ICustomerService CustomerService
 @inject NavigationManager Navigation
 
 <PageTitle>Edit Customer</PageTitle>
@@ -45,7 +45,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        customer = await DbContext.Customers.FindAsync(Id);
+        customer = await CustomerService.GetByIdAsync(Id);
     }
 
     private async Task UpdateCustomer()
@@ -55,15 +55,13 @@ else
             return;
         }
 
-        try
+        var result = await CustomerService.UpdateAsync(customer);
+        if (!result.Success)
         {
-            DbContext.Customers.Update(customer);
-            await DbContext.SaveChangesAsync();
-            Navigation.NavigateTo("/customers");
+            error = result.Error;
+            return;
         }
-        catch (DbUpdateException)
-        {
-            error = "Could not update customer. Make sure the email is unique.";
-        }
+
+        Navigation.NavigateTo("/customers");
     }
 }

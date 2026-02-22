@@ -1,5 +1,5 @@
 @page "/cars/edit/{id:int}"
-@inject ApplicationDbContext DbContext
+@inject ICarService CarService
 @inject NavigationManager Navigation
 
 <PageTitle>Edit Car</PageTitle>
@@ -46,15 +46,21 @@ else
     </EditForm>
 }
 
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger mt-3">@error</div>
+}
+
 @code {
     [Parameter]
     public int Id { get; set; }
 
     private Car? car;
+    private string? error;
 
     protected override async Task OnInitializedAsync()
     {
-        car = await DbContext.Cars.FindAsync(Id);
+        car = await CarService.GetByIdAsync(Id);
     }
 
     private async Task UpdateCar()
@@ -64,8 +70,13 @@ else
             return;
         }
 
-        DbContext.Cars.Update(car);
-        await DbContext.SaveChangesAsync();
+        var result = await CarService.UpdateAsync(car);
+        if (!result.Success)
+        {
+            error = result.Error;
+            return;
+        }
+
         Navigation.NavigateTo("/cars");
     }
 }

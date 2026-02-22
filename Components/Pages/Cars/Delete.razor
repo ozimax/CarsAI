@@ -1,5 +1,5 @@
 @page "/cars/delete/{id:int}"
-@inject ApplicationDbContext DbContext
+@inject ICarService CarService
 @inject NavigationManager Navigation
 
 <PageTitle>Delete Car</PageTitle>
@@ -35,15 +35,21 @@ else
     <a class="btn btn-secondary ms-2" href="/cars">Cancel</a>
 }
 
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger mt-3">@error</div>
+}
+
 @code {
     [Parameter]
     public int Id { get; set; }
 
     private Car? car;
+    private string? error;
 
     protected override async Task OnInitializedAsync()
     {
-        car = await DbContext.Cars.FindAsync(Id);
+        car = await CarService.GetByIdAsync(Id);
     }
 
     private async Task DeleteCar()
@@ -53,8 +59,13 @@ else
             return;
         }
 
-        DbContext.Cars.Remove(car);
-        await DbContext.SaveChangesAsync();
+        var result = await CarService.DeleteAsync(Id);
+        if (!result.Success)
+        {
+            error = result.Error;
+            return;
+        }
+
         Navigation.NavigateTo("/cars");
     }
 }

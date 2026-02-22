@@ -1,5 +1,7 @@
 using myapp.Components;
-using myapp.Data;
+using myapp.Application.Abstractions;
+using myapp.Infrastructure.Persistence;
+using myapp.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +11,9 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<ICarService, CarService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<ISoldCarService, SoldCarService>();
 
 var app = builder.Build();
 
